@@ -19,4 +19,47 @@ response = client.models.generate_content(
         top_k=20,
     ),
 )
-display(Markdown(response.text))
+
+def tampilkan_isi_respons(response):
+    if hasattr(response, 'text') and response.text:
+        hasil = response.text.strip()
+    elif hasattr(response, 'candidates') and response.candidates:
+        hasil = response.candidates[0].content.strip()
+    else:
+        hasil = str(response).strip()
+    print("\n===== SOAL LATIHAN =====\n")
+    print(hasil)
+    print("\n=======================\n")
+    return hasil
+
+tampilkan_isi_respons(response)
+soal = tampilkan_isi_respons(response)
+
+
+p = input("apakah ingin menampilkan kunci jawaban? (y/n): ")
+if p.lower() == 'y':
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=f"buatkan kunci jawaban dari soal sebelumnya: {soal}",
+        config=types.GenerateContentConfig(
+            temperature=0,
+            top_p=0.95,
+            top_k=20,
+        ),
+    )
+    def tampilkan_isi_respons(response):
+        if hasattr(response, 'text') and response.text:
+            hasil = response.text.strip()
+        elif hasattr(response, 'candidates') and response.candidates:
+            hasil = response.candidates[0].content.strip()
+        else:
+            hasil = str(response).strip()
+        print("\n===== KUNCI JAWABAN =====\n")
+        print(hasil)
+        print("\n=========================\n")
+    tampilkan_isi_respons(response)
+else:
+    print("terima kasih telah menggunakan layanan ini.")
+
+
+
