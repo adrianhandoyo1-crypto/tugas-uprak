@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Belajar</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box; 
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #3367d6;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+            display: none; 
+        }
+
+        .result-box h2 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .markdown-content {
+            line-height: 1.6;
+        }
+        
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .markdown-content th, .markdown-content td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .markdown-content th {
+            background-color: #f2f2f2;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #section-kunci {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .api-warning {
+            font-size: 0.8em;
+            color: #d93025;
+            margin-bottom: 20px;
+            text-align: center;
+            background: #fce8e6;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Generator Soal Matematika</h1>
+    
+    <div class="form-group">
+        <label for="apiKey">Google Gemini API Key:</label>
+        <input type="password" id="apiKey" placeholder="Tempel API Key Anda di sini" value="AIzaSyA7pRWGhUvfbwJ9DRq-gbXiu7W8q1x4x5s" disabled>
+    </div>
+
+    <div class="api-warning">
+        ⚠️ Gunakan API Key sendiri jika kuota habis. Kode ini berjalan di browser Anda.
+    </div>
+
+    <div class="form-group">
+        <label for="mapel">Mata Pelajaran:</label>
+        <input type="text" id="mapel" placeholder="Contoh: Fisika" value="Matematika" disabled>
+    </div>
+
+    <div class="form-group">
+        <label for="topik">Topik Bahasan:</label>
+        <input type="text" id="topik" placeholder="Contoh: Momentum dan Impuls" value="">
+    </div>
+
+    <div class="form-group">
+        <label for="jumlah">Jumlah Soal:</label>
+        <input type="number" id="jumlah" min="1" max="50" value="3">
+    </div>
+
+    <div class="form-group">
+        <label for="lvl">Tingkat Kesulitan:</label>
+        <select id="lvl">
+            <option value="Mudah">Mudah</option>
+            <option value="Sedang">Sedang</option>
+            <option value="Sulit">Sulit</option>
+            <option value="HOTS">HOTS</option>
+        </select>
+    </div>
+
+    <button id="btnGenerate" onclick="generateSoal()">Buat Soal</button>
+    
+    <div id="loading" class="loader"></div>
+
+    <div id="box-soal" class="result-box">
+        <h2>SOAL LATIHAN</h2>
+        <div id="output-soal" class="markdown-content"></div>
+    </div>
+
+    <div id="section-kunci">
+        <p>Apakah ingin menampilkan kunci jawaban?</p>
+        <button onclick="generateKunci()" id="btnKunci">Tampilkan Kunci Jawaban</button>
+    </div>
+
+    <div id="loading-kunci" class="loader"></div>
+
+    <div id="box-kunci" class="result-box">
+        <h2>KUNCI JAWABAN</h2>
+        <div id="output-kunci" class="markdown-content"></div>
+    </div>
+</div>
+
+<script>
+    let currentSoalText = "";
+
+    async function callGemini(promptText) {
+        const apiKey = document.getElementById('apiKey').value;
+        if (!apiKey) {
+            alert("Mohon masukkan API Key terlebih dahulu.");
+            throw new Error("API Key Missing");
+        }
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+        const requestBody = {
+            contents: [{
+                parts: [{ text: promptText }]
+            }],
+            generationConfig: {
+                temperature: 0,
+                topP: 0.95,
+                topK: 20
+            }
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error.message || "Gagal menghubungi Gemini AI");
+        }
+
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text;
+    }
+    function renderMath() {
+        if (window.MathJax) {
+            MathJax.typesetPromise().catch((err) => console.log(err));
+        }
+    }
+
+    async function generateSoal() {
+        const mapel = document.getElementById('mapel').value;
+        const topik = document.getElementById('topik').value;
+        const jumlah = document.getElementById('jumlah').value;
+        const lvl = document.getElementById('lvl').value;
+
+        if(!mapel || !topik) {
+            alert("Mohon lengkapi mata pelajaran dan topik.");
+            return;
+        }
+
+        document.getElementById('box-soal').style.display = 'none';
+        document.getElementById('section-kunci').style.display = 'none';
+        document.getElementById('box-kunci').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('btnGenerate').disabled = true;
+
+        const prompt = `Saya akan menghadapi ujian ${mapel} dengan bab ${topik}. Buatkan ${jumlah} soal latihan tingkat ${lvl}. Buat tanpa kunci jawaban. Gunakan format LaTeX (tanda $) untuk rumus matematika.`;
+
+        try {
+            const resultText = await callGemini(prompt);
+            currentSoalText = resultText;
+
+            const outputDiv = document.getElementById('output-soal');
+            outputDiv.innerHTML = marked.parse(resultText);
+        
+            renderMath();
+
+            document.getElementById('box-soal').style.display = 'block';
+            document.getElementById('section-kunci').style.display = 'block';
+
+        } catch (error) {
+            alert("Terjadi kesalahan: " + error.message);
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('btnGenerate').disabled = false;
+        }
+    }
+
+    async function generateKunci() {
+        document.getElementById('loading-kunci').style.display = 'block';
+        document.getElementById('btnKunci').disabled = true;
+
+        const prompt = `Buatkan kunci jawaban dan pembahasan lengkap dari soal ini: ${currentSoalText}. Gunakan format LaTeX (tanda $) untuk rumus.`;
+
+        try {
+            const resultText = await callGemini(prompt);
+
+            const outputDiv = document.getElementById('output-kunci');
+            outputDiv.innerHTML = marked.parse(resultText);
+            renderMath();
+
+            document.getElementById('box-kunci').style.display = 'block';
+            document.getElementById('btnKunci').style.display = 'none';
+
+        } catch (error) {
+            alert("Terjadi kesalahan: " + error.message);
+            document.getElementById('btnKunci').disabled = false;
+        } finally {
+            document.getElementById('loading-kunci').style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
