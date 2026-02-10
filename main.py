@@ -27,12 +27,12 @@ def tampilkan_isi_respons(response):
         hasil = response.candidates[0].content.strip()
     else:
         hasil = str(response).strip()
-    print("\n===== SOAL LATIHAN =====\n")
-    print(hasil)
-    print("\n=======================\n")
     return hasil
 
-tampilkan_isi_respons(response)
+print("\n===== SOAL LATIHAN =====\n")
+display(Markdown(response.text))
+print("\n=======================\n")
+
 soal = tampilkan_isi_respons(response)
 
 
@@ -47,19 +47,8 @@ if p.lower() == 'y':
             top_k=20,
         ),
     )
-    def tampilkan_isi_respons(response):
-        if hasattr(response, 'text') and response.text:
-            hasil = response.text.strip()
-        elif hasattr(response, 'candidates') and response.candidates:
-            hasil = response.candidates[0].content.strip()
-        else:
-            hasil = str(response).strip()
-        print("\n===== KUNCI JAWABAN =====\n")
-        print(hasil)
-        print("\n=========================\n")
-    tampilkan_isi_respons(response)
+    print("\n===== KUNCI JAWABAN =====\n")
+    display(Markdown(response.text))
+    print("\n=========================\n")
 else:
     print("terima kasih telah menggunakan layanan ini.")
-
-
-
